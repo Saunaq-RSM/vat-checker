@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>EU VAT Batch Checker (VIES)</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 2rem; max-width: 42rem; }
+    textarea { width: 100%; height: 8rem; font-family: monospace; }
+    button { padding: 0.6rem 1.2rem; font-size: 1rem; }
+    table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 0.4rem 0.6rem; text-align: left; }
+    tr.ok td.status { color: green; font-weight: 600; }
+    tr.fail td.status { color: #c00; font-weight: 600; }
+    tr.loading td.status { color: #888; }
+  </style>
+</head>
+<body>
+  <h1>EU VAT Batch Checker (VIES)</h1>
+  <label for="vatList">Enter one VAT number per line (e.g. <code>DE123456789</code>):</label>
+  <textarea id="vatList" placeholder="DE123456789&#10;FR12345678901&#10;BE02831130808"></textarea>
+  <button id="checkBtn">Check VAT numbers</button>
+
+  <table id="results" hidden>
+    <thead>
+      <tr>
+        <th>Country</th>
+        <th>VAT Number</th>
+        <th>Status</th>
+        <th>Name / Address</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+<script>
+  // Configuration
+  const VIES_ENDPOINT = 'https://ec.europa.eu/taxation_customs/vies/services/checkVatService';
+  const HEADERS = {
+    'Content-Type': 'text/xml; charset=UTF-8'
+  };
+
+  // Build SOAP envelope for checkVat request
+  function buildSoap(country, number) {
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<env:Envelope
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:tns1="urn:ec.europa.eu:taxud:vies:services:checkVat"
+  xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:ins0="urn:ec.europa.eu:taxud:vies:services:checkVat:types">
+  <env:Body>
+    <ins0:checkVatApprox>
+      <ins0:countryCode>${country}</ins0:countryCode>
+      <ins0:vatNumber>${number}</ins0:vatNumber>
+      <ins0:requesterCountryCode></ins0:requesterCountryCode>
+      <ins0:requesterVatNumber></ins0:requesterVatNumber>
+    </ins0:checkVatApprox>
+  </env:Body>
+</env:Envelope>`;
+  }
+
+  // Parse SOAP XML response
+  function parseSoapResponse(xmlText) {
+    const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
+    const fault = doc.querySelector('faultcode')?.textContent;
+    const valid = !fault && doc.querySelector('valid')?.textContent === 'true';
+    const name = doc.querySelector('name')?.textContent?.trim() || '';
+    const addr = doc.querySelector('address')?.textContent?.replace(/\s+/g,' ').trim() || '';
+    return { valid, details: [name, addr].filter(Boolean).join(' – '), fault };
+  }
+
+  // Handler for button click
+  document.getElementById('checkBtn').addEventListener('click', async () => {
+    const raw = document.getElementById('vatList').value.trim();
+    const list = raw.split(/\r?\n/).map(v => v.trim()).filter(Boolean);
+    if (!list.length) return alert('Please paste at least one VAT number.');
+
+    const table = document.getElementById('results');
+    const tbody = table.querySelector('tbody');
+    tbody.innerHTML = '';
+    table.hidden = false;
+
+    // Create rows for each VAT
+    const rows = list.map(vat => {
+      const country = vat.slice(0,2).toUpperCase();
+      const number = vat.slice(2).replace(/\s+/g,'');
+      const tr = document.createElement('tr');
+      tr.className = 'loading';
+      tr.innerHTML = `
+        <td>${country}</td>
+        <td>${number}</td>
+        <td class="status">…</td>
+        <td class="details"></td>`;
+      tbody.appendChild(tr);
+      return { country, number, tr };
+    });
+
+    // Check each VAT sequentially
+    for (const { country, number, tr } of rows) {
+      const statusTd = tr.querySelector('td.status');
+      const detailsTd = tr.querySelector('td.details');
+      try {
+        const response = await fetch(VIES_ENDPOINT, {
+          method: 'POST',
+          mode: 'cors',            // ← added
+          headers: HEADERS,
+          body: buildSoap(country, number)
+        });
+        // In no-cors mode response is opaque; you cannot call response.text() on it
+        const text = await response.text();
+        const { valid, details, fault } = parseSoapResponse(text);
+        if (fault) {
+          tr.className = 'fail';
+          statusTd.textContent = fault;
+        } else if (valid) {
+          tr.className = 'ok';
+          statusTd.textContent = 'Valid';
+          detailsTd.textContent = details || '(name unavailable)';
+        } else {
+          tr.className = 'fail';
+          statusTd.textContent = 'Invalid';
+        }
+      } catch (err) {
+        tr.className = 'fail';
+        statusTd.textContent = 'Error';
+        detailsTd.textContent = err.message;
+      }
+    }
+  });
+</script>
+
+</body>
+</html>
