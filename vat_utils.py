@@ -13,31 +13,45 @@ def build_soap(country: str, number: str) -> str:
  xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
  xmlns:ins0="urn:ec.europa.eu:taxud:vies:services:checkVat:types">
   <env:Body>
-    <ins0:checkVatApprox>
+    <ins0:checkVat>
       <ins0:countryCode>{country}</ins0:countryCode>
       <ins0:vatNumber>{number}</ins0:vatNumber>
       <ins0:requesterCountryCode></ins0:requesterCountryCode>
       <ins0:requesterVatNumber></ins0:requesterVatNumber>
-    </ins0:checkVatApprox>
+    </ins0:checkVat>
   </env:Body>
 </env:Envelope>'''
 
 def parse_response(xml_text: str) -> dict:
     doc = ET.fromstring(xml_text)
-    # namespaces cleanup
-    ns = {'soap': 'http://schemas.xmlsoap.org/soap/envelope/',
-          'vies': 'urn:ec.europa.eu:taxud:vies:services:checkVat:types'}
-    fault = doc.find('.//faultcode')
-    if fault is not None:
-        return {'valid': False, 'status': fault.text, 'details': ''}
+    ns = {
+        'soap': 'http://schemas.xmlsoap.org/soap/envelope/',
+        'vies': 'urn:ec.europa.eu:taxud:vies:services:checkVat:types'
+    }
+    # Check for a fault
+    fault = doc.findtext('.//faultcode')
+    if fault:
+        if fault == 'env:Server':
+          fault = 'Server Not Responding, try later'
+        return {'valid': False, 'status': fault, 'details': ''}
+    # True/False flag
     valid = doc.findtext('.//vies:valid', namespaces=ns) == 'true'
+    # Grab the exact traderName/traderAddress
     name = doc.findtext('.//vies:name', namespaces=ns) or ''
     addr = doc.findtext('.//vies:address', namespaces=ns) or ''
-    details = ' – '.join(filter(None, [name.strip(), ' '.join(addr.split())]))
+
+    # Clean up whitespace
+    addr = ' '.join(addr.split())
+    # **Filter out the literal placeholders** if they slip through
+    if name.strip().lower() == 'name':
+        name = ''
+    if addr.strip().lower() == 'address':
+        addr = ''
+    details = ' – '.join(filter(None, [name, addr]))
     return {
-      'valid': valid,
-      'status': 'Valid' if valid else 'Invalid',
-      'details': details or '(name unavailable)'
+        'valid': valid,
+        'status': 'Valid' if valid else 'Invalid',
+        'details': details or '(name unavailable)',
     }
 
 def check_vat(country: str, number: str) -> dict:
