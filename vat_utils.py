@@ -52,6 +52,8 @@ def parse_response(xml_text: str) -> dict:
         'valid': valid,
         'status': 'Valid' if valid else 'Invalid',
         'details': details or '(name unavailable)',
+        'name': name or '(name unavailable)',
+        'address': addr or '(address unavailable)'
     }
 
 def check_vat(country: str, number: str) -> dict:

@@ -5,6 +5,7 @@ import yaml
 import pandas as pd
 from passlib.context import CryptContext
 from vat_utils import check_vat
+import io
 
 # Configuration
 CRED_FILE = "credentials.yaml"
@@ -15,7 +16,6 @@ INITIAL_CREDIT = 10.0  # € initial credit for new users
 pwd_ctx = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 # Load and save credentials
-
 def load_credentials():
     try:
         with open(CRED_FILE, 'r') as f:
@@ -33,7 +33,6 @@ def save_credentials(data):
         yaml.safe_dump(data, f)
 
 # Registration and authentication helpers
-
 def register_user(users, creds):
     st.subheader('Create a new account')
     u = st.text_input('Username', key='reg_user')
@@ -71,7 +70,7 @@ users = creds['credentials']['users']
 
 # Login / Register UI
 if not st.session_state['logged_in']:
-    mode = st.sidebar.radio('Account', ['Login', 'Register'])
+    mode = st.sidebar.radio('Account', ['Login'])
     if mode == 'Register':
         register_user(users, creds)
     else:
@@ -145,23 +144,43 @@ def main_app():
         if skipped:
             st.warning(f"Only {len(to_process)} of {len(vat_list)} processed due to credit.")
 
-        # Stream results incrementally
-        results_df = pd.DataFrame(columns=["Country", "VAT Number", "Status", "Name / Address"])
+        # Progress bar and incremental results
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        results_df = pd.DataFrame(columns=["Country", "VAT Number", "Status", "Name", "Address"])
         table_placeholder = st.empty()
-        for vat in to_process:
+        total = len(to_process)
+        for i, vat in enumerate(to_process, start=1):
             country, number = vat[:2].upper(), vat[2:].replace(' ', '')
             try:
                 r = check_vat(country, number)
-                status, details = r['status'], r['details']
+                status, details,name, address = r['status'], r['details'], r['name'], r['address']
             except Exception as e:
-                status, details = 'Error', str(e)
+                status, details, name, address = 'Error', str(e), str(e), ""
             new_row = {"Country": country, "VAT Number": number,
-                       "Status": status, "Name / Address": details}
+                       "Status": status, "Name": name, "Address": address}
             results_df = pd.concat([results_df, pd.DataFrame([new_row])], ignore_index=True)
-            # Display updated table with wider columns
+
+            # Update UI
+            progress_bar.progress(i / total)
+            status_text.text(f"Processing {i} of {total} VAT checks...")
             table_placeholder.dataframe(results_df, width=800)
+
+        status_text.text("Done!")
         if skipped:
             st.info(f"Skipped VATs: {', '.join(skipped)}")
+            
+        towrite = io.BytesIO()
+        with pd.ExcelWriter(towrite, engine='openpyxl') as writer:
+            results_df.to_excel(writer, index=False, sheet_name='VAT Results')
+        towrite.seek(0)
+        st.download_button(
+            label="Download results as Excel",
+            data=towrite.getvalue(),
+            file_name="vat_results.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
 
     if st.sidebar.button('Logout'):
         st.session_state.update({'logged_in': False, 'username': '', 'credit': 0.0})
