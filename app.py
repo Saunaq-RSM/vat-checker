@@ -6,7 +6,7 @@ import pandas as pd
 from passlib.context import CryptContext
 from vat_utils import check_vat
 import io
-
+from datetime import datetime
 # Configuration
 CRED_FILE = "credentials.yaml"
 COST_PER_CHECK = 0.05  # € per VAT check line
@@ -70,7 +70,7 @@ users = creds['credentials']['users']
 
 # Login / Register UI
 if not st.session_state['logged_in']:
-    mode = st.sidebar.radio('Account', ['Login'])
+    mode = st.sidebar.radio('Account', ['Login']) # Add 'Register' here to readd the register page. 
     if mode == 'Register':
         register_user(users, creds)
     else:
@@ -147,18 +147,26 @@ def main_app():
         # Progress bar and incremental results
         progress_bar = st.progress(0)
         status_text = st.empty()
-        results_df = pd.DataFrame(columns=["Country", "VAT Number", "Status", "Name", "Address"])
+        results_df = pd.DataFrame(columns=["Country", "VAT Number", "Status", "Name", "Address", "Timestamp"])
         table_placeholder = st.empty()
         total = len(to_process)
+        explored = set()
         for i, vat in enumerate(to_process, start=1):
+            if vat in explored:
+                progress_bar.progress(i / total)
+                status_text.text(f"Processing {i} of {total} VAT checks...")
+                table_placeholder.dataframe(results_df, width=800)
+                continue
+            explored.add(vat)
             country, number = vat[:2].upper(), vat[2:].replace(' ', '')
             try:
                 r = check_vat(country, number)
+                
                 status, details,name, address = r['status'], r['details'], r['name'], r['address']
             except Exception as e:
-                status, details, name, address = 'Error', str(e), str(e), ""
+                status, details, name, address = 'Invalid', str(e), str(e), ""
             new_row = {"Country": country, "VAT Number": number,
-                       "Status": status, "Name": name, "Address": address}
+                       "Status": status, "Name": name, "Address": address, "Timestamp": datetime.now().time()}
             results_df = pd.concat([results_df, pd.DataFrame([new_row])], ignore_index=True)
 
             # Update UI

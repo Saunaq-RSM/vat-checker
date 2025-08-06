@@ -16,8 +16,8 @@ def build_soap(country: str, number: str) -> str:
     <ins0:checkVat>
       <ins0:countryCode>{country}</ins0:countryCode>
       <ins0:vatNumber>{number}</ins0:vatNumber>
-      <ins0:requesterCountryCode></ins0:requesterCountryCode>
-      <ins0:requesterVatNumber></ins0:requesterVatNumber>
+      <ins0:requesterCountryCode>NL</ins0:requesterCountryCode>
+      <ins0:requesterVatNumber>NL009444452B01</ins0:requesterVatNumber>
     </ins0:checkVat>
   </env:Body>
 </env:Envelope>'''
