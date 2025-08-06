@@ -7,10 +7,13 @@ from passlib.context import CryptContext
 from vat_utils import check_vat
 import io
 from datetime import datetime
+import pytz
+
 # Configuration
 CRED_FILE = "credentials.yaml"
 COST_PER_CHECK = 0.05  # € per VAT check line
 INITIAL_CREDIT = 10.0  # € initial credit for new users
+cet = pytz.timezone('Europe/Paris')  # CET/CEST depending on daylight saving
 
 # Password hashing setup
 pwd_ctx = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
@@ -166,7 +169,8 @@ def main_app():
             except Exception as e:
                 status, details, name, address = 'Invalid', str(e), str(e), ""
             new_row = {"Country": country, "VAT Number": number,
-                       "Status": status, "Name": name, "Address": address, "Timestamp": datetime.now().time()}
+                       "Status": status, "Name": name, "Address": address, "Timestamp": datetime.now(cet).strftime("%Y-%m-%d %H:%M:%S")
+}
             results_df = pd.concat([results_df, pd.DataFrame([new_row])], ignore_index=True)
 
             # Update UI
