@@ -70,6 +70,23 @@ def register_user(users, creds):
         return True
     return False
 
+def show_logo():
+    st.markdown(
+        """
+        <style>
+        [data-testid="stSidebar"] img {
+            margin-bottom: 20px;
+        }
+        .logo-container {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.image("RSM International _ Logopedia _ Fandom.png", width=120)  # Adjust size as needed
 
 def authenticate(u, p, users):
     return u in users and pwd_ctx.verify(p, users[u]["password"])
@@ -81,12 +98,19 @@ if "logged_in" not in st.session_state:
 
 # ------------------ App Configuration ------------------ #
 st.set_page_config(page_title="EU VAT Batch Checker (VIES)", layout="centered")
+show_logo()
+
 creds = load_credentials()
 users = creds["credentials"]["users"]
 
 # ------------------ Login / Register UI ------------------ #
 if not st.session_state["logged_in"]:
-    mode = st.sidebar.radio("Account", ["Login", "Register"])
+    st.sidebar.subheader("Account")
+    mode = st.sidebar.radio("Choose", ["Login", "Register"])
+    
+    # Show logo on login screen too
+    # st.image("RSM International _ Logopedia _ Fandom.png", width=120)
+
     if mode == "Register":
         register_user(users, creds)
     else:
@@ -105,6 +129,8 @@ if not st.session_state["logged_in"]:
 
 # ------------------ Main VAT Checker ------------------ #
 def main_app():
+    # show_logo()
+
     user = st.session_state["username"]
     sidebar = st.sidebar
     sidebar.write(f"**User:** {users[user]['name']}")
