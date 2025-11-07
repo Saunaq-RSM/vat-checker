@@ -59,6 +59,6 @@ def parse_response(xml_text: str) -> dict:
 def check_vat(country: str, number: str) -> dict:
     """Send SOAP request and return parsed result."""
     soap = build_soap(country, number)
-    resp = requests.post(VIES_ENDPOINT, headers=HEADERS, data=soap)
+    resp = requests.post(VIES_ENDPOINT, headers=HEADERS, data=soap, timeout = 10)
     resp.raise_for_status()
     return parse_response(resp.text)
