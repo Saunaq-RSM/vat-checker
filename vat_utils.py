@@ -65,7 +65,7 @@ def check_vat(country: str, number: str) -> dict:
         try:
             soap = build_soap(country, number)
             # Fixed timeout = 10 seconds
-            resp = requests.post(VIES_ENDPOINT, headers=HEADERS, data=soap) #timeout=10
+            resp = requests.post(VIES_ENDPOINT, headers=HEADERS, data=soap, timeout=(3, 7)) #timeout=10
             resp.raise_for_status()
             result = parse_response(resp.text)
 
