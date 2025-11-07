@@ -61,7 +61,7 @@ def check_vat(country: str, number: str) -> dict:
     for attempt in range(1, MAX_ITERATIONS + 1):
         try:
             soap = build_soap(country, number)
-            resp = requests.post(VIES_ENDPOINT, headers=HEADERS, data=soap, timeout=REQUEST_TIMEOUT)
+            resp = requests.post(VIES_ENDPOINT, headers=HEADERS, data=soap, timeout=10)
             resp.raise_for_status()
             result = parse_response(resp.text)
 
@@ -73,14 +73,3 @@ def check_vat(country: str, number: str) -> dict:
                 continue
 
             return result
-
-        except requests.Timeout:
-            print(f"Attempt {attempt}: Timeout after {REQUEST_TIMEOUT} seconds.")
-            if attempt == MAX_ITERATIONS:
-                return {'valid': False, 'status': 'Timeout', 'details': '', 'name': '(timeout)', 'address': '(timeout)'}
-            time.sleep(2 ** (attempt - 1))
-        except requests.RequestException as e:
-            return {'valid': False, 'status': f'HTTP error: {e}', 'details': '', 'name': '(error)', 'address': '(error)'}
-
-    # If all retries fail
-    return {'valid': False, 'status': 'Server Not Responding after retries', 'details': '', 'name': '(error)', 'address': '(error)'}
