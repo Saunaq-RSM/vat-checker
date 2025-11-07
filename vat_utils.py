@@ -1,3 +1,5 @@
+
+import time
 import requests
 from xml.etree import ElementTree as ET
 
@@ -58,18 +60,53 @@ def parse_response(xml_text: str) -> dict:
 
 def check_vat(country: str, number: str) -> dict:
     """Send SOAP request, handle timeouts, and retry server errors."""
+    MAX_ITERATIONS = 4
     for attempt in range(1, MAX_ITERATIONS + 1):
         try:
             soap = build_soap(country, number)
+            # Fixed timeout = 10 seconds
             resp = requests.post(VIES_ENDPOINT, headers=HEADERS, data=soap, timeout=10)
             resp.raise_for_status()
             result = parse_response(resp.text)
 
             # If server says "try later", wait and retry
             if result['status'] == 'Server Not Responding, try later' and attempt < MAX_ITERATIONS:
-                wait_time = 2 ** (attempt - 1)  # exponential backoff
+                wait_time = 2 ** (attempt - 1)  # exponential backoff: 1s, 2s, 4s, ...
                 print(f"Attempt {attempt}: Server busy, retrying in {wait_time}s...")
                 time.sleep(wait_time)
                 continue
 
+            # If successful or invalid VAT, return the result
             return result
+
+        except requests.Timeout:
+            print(f"Attempt {attempt}: Timeout after 10 seconds.")
+            if attempt == MAX_ITERATIONS:
+                return {
+                    'valid': False,
+                    'status': 'Timeout after 10 seconds',
+                    'details': '',
+                    'name': '(timeout)',
+                    'address': '(timeout)'
+                }
+            # Wait before retrying
+            time.sleep(2 ** (attempt - 1))
+
+        except requests.RequestException as e:
+            # Any other request-related error
+            return {
+                'valid': False,
+                'status': f'HTTP error: {e}',
+                'details': '',
+                'name': '(error)',
+                'address': '(error)'
+            }
+
+    # If all attempts fail
+    return {
+        'valid': False,
+        'status': 'Server Not Responding after retries',
+        'details': '',
+        'name': '(error)',
+        'address': '(error)'
+    }
