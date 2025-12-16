@@ -195,60 +195,60 @@ def main_app():
     #     if skipped:
     #         st.warning(f"Only {len(to_process)} of {len(vat_list)} processed due to credit.")
 
-if st.button("Check VAT numbers"):
-    if not vat_list:
-        st.warning("No VAT numbers provided.")
-        return
-
-    # No credit system: process everything
-    to_process = vat_list
-    skipped = []
-
-    # Continue with your existing code:
-    progress_bar = st.progress(0)
-    status_text = st.empty()
-    results_df = pd.DataFrame(
-        columns=["Country", "VAT Number", "Status", "Name", "Address", "Timestamp"]
-    )
-    table_placeholder = st.empty()
-    total = len(to_process)
-    explored = set()
-
-    for i, vat in enumerate(to_process, start=1):
-        country, number = vat[:2].upper(), vat[2:].replace(" ", "")
-        try:
-            r = check_vat(country, number)
-            status, name, address = r.get("status"), r.get("name"), r.get("address")
-        except Exception as e:
-            status, name, address = "Invalid", str(e), ""
-
-        new_row = {
-            "Country": country,
-            "VAT Number": number,
-            "Status": status,
-            "Name": name,
-            "Address": address,
-            "Timestamp": datetime.now(cet).strftime("%Y-%m-%d %H:%M:%S"),
-        }
-        results_df = pd.concat([results_df, pd.DataFrame([new_row])], ignore_index=True)
-
-        progress_bar.progress(i / total)
-        status_text.text(f"Processing {i} of {total} VAT checks...")
-        table_placeholder.dataframe(results_df, width=800)
-
-    status_text.text("Done!")
-
-    # Download file
-    towrite = io.BytesIO()
-    with pd.ExcelWriter(towrite, engine="openpyxl") as writer:
-        results_df.to_excel(writer, index=False, sheet_name="VAT Results")
-    towrite.seek(0)
-    st.download_button(
-        label="Download results as Excel",
-        data=towrite.getvalue(),
-        file_name="vat_results.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    )
+    if st.button("Check VAT numbers"):
+        if not vat_list:
+            st.warning("No VAT numbers provided.")
+            return
+    
+        # No credit system: process everything
+        to_process = vat_list
+        skipped = []
+    
+        # Continue with your existing code:
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        results_df = pd.DataFrame(
+            columns=["Country", "VAT Number", "Status", "Name", "Address", "Timestamp"]
+        )
+        table_placeholder = st.empty()
+        total = len(to_process)
+        explored = set()
+    
+        for i, vat in enumerate(to_process, start=1):
+            country, number = vat[:2].upper(), vat[2:].replace(" ", "")
+            try:
+                r = check_vat(country, number)
+                status, name, address = r.get("status"), r.get("name"), r.get("address")
+            except Exception as e:
+                status, name, address = "Invalid", str(e), ""
+    
+            new_row = {
+                "Country": country,
+                "VAT Number": number,
+                "Status": status,
+                "Name": name,
+                "Address": address,
+                "Timestamp": datetime.now(cet).strftime("%Y-%m-%d %H:%M:%S"),
+            }
+            results_df = pd.concat([results_df, pd.DataFrame([new_row])], ignore_index=True)
+    
+            progress_bar.progress(i / total)
+            status_text.text(f"Processing {i} of {total} VAT checks...")
+            table_placeholder.dataframe(results_df, width=800)
+    
+        status_text.text("Done!")
+    
+        # Download file
+        towrite = io.BytesIO()
+        with pd.ExcelWriter(towrite, engine="openpyxl") as writer:
+            results_df.to_excel(writer, index=False, sheet_name="VAT Results")
+        towrite.seek(0)
+        st.download_button(
+            label="Download results as Excel",
+            data=towrite.getvalue(),
+            file_name="vat_results.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
 
     # if st.sidebar.button("Logout"):
     #     st.session_state.update({"logged_in": False, "username": "", "credit": 0.0})
