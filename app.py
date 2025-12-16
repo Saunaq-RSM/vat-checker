@@ -131,9 +131,9 @@ if not st.session_state["logged_in"]:
 def main_app():
     # show_logo()
 
-    user = st.session_state["username"]
-    sidebar = st.sidebar
-    sidebar.write(f"**User:** {users[user]['name']}")
+    # user = st.session_state["username"]
+    # sidebar = st.sidebar
+    # sidebar.write(f"**User:** {users[user]['name']}")
     credit_slot = sidebar.empty()
     credit_slot.write(f"**Credit:** €{st.session_state['credit']:.2f}")
 
