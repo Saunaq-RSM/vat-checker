@@ -168,32 +168,41 @@ def main_app():
         vat_list = [v.strip() for v in text_input.splitlines() if v.strip()]
 
     # Run VAT checks
+    # if st.button("Check VAT numbers"):
+    #     if not vat_list:
+    #         st.warning("No VAT numbers provided.")
+    #         return
+
+    #     credit = st.session_state["credit"]
+    #     max_checks = int(credit // COST_PER_CHECK)
+
+    #     if max_checks == 0:
+    #         st.error("Insufficient credit to perform any checks.")
+    #         return
+
+    #     to_process = vat_list[:max_checks]
+    #     skipped = vat_list[max_checks:]
+    #     cost = COST_PER_CHECK * len(to_process)
+    #     new_credit = round(credit - cost, 2)
+
+    #     # Save updated credit to session and YAML
+    #     st.session_state["credit"] = new_credit
+    #     users[user]["credit"] = new_credit
+    #     creds["credentials"]["users"] = users
+    #     save_credentials(creds)
+
+    #     credit_slot.write(f"**Credit:** €{new_credit:.2f}")
+    #     if skipped:
+    #         st.warning(f"Only {len(to_process)} of {len(vat_list)} processed due to credit.")
+
     if st.button("Check VAT numbers"):
-        if not vat_list:
-            st.warning("No VAT numbers provided.")
-            return
+    if not vat_list:
+        st.warning("No VAT numbers provided.")
+        return
 
-        credit = st.session_state["credit"]
-        max_checks = int(credit // COST_PER_CHECK)
-
-        if max_checks == 0:
-            st.error("Insufficient credit to perform any checks.")
-            return
-
-        to_process = vat_list[:max_checks]
-        skipped = vat_list[max_checks:]
-        cost = COST_PER_CHECK * len(to_process)
-        new_credit = round(credit - cost, 2)
-
-        # Save updated credit to session and YAML
-        st.session_state["credit"] = new_credit
-        users[user]["credit"] = new_credit
-        creds["credentials"]["users"] = users
-        save_credentials(creds)
-
-        credit_slot.write(f"**Credit:** €{new_credit:.2f}")
-        if skipped:
-            st.warning(f"Only {len(to_process)} of {len(vat_list)} processed due to credit.")
+    # No credit system: process everything
+    to_process = vat_list
+    skipped = []
 
         # Progress bar + results
         progress_bar = st.progress(0)
