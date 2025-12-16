@@ -120,8 +120,8 @@ if not st.session_state["logged_in"]:
         if st.sidebar.button("Login", key="login_btn"):
             if authenticate(user, pwd, users):
                 st.session_state["logged_in"] = True
-                st.session_state["username"] = user
-                st.session_state["credit"] = users[user].get("credit", 0.0)
+                st.session_state["username"] = "demo" # or st.session_state["username"] = user
+                st.session_state["credit"] = 9999 # or st.session_state["credit"] = users[user].get("credit", 0.0)
                 st.rerun()
             else:
                 st.sidebar.error("Invalid credentials.")
@@ -257,5 +257,7 @@ def main_app():
 
 
 # ------------------ Run App ------------------ #
-if st.session_state["logged_in"]:
-    main_app()
+# if st.session_state["logged_in"]:
+#     main_app()
+
+main_app()
