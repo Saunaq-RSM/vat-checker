@@ -104,27 +104,27 @@ creds = load_credentials()
 users = creds["credentials"]["users"]
 
 # ------------------ Login / Register UI ------------------ #
-if not st.session_state["logged_in"]:
-    st.sidebar.subheader("Account")
-    mode = st.sidebar.radio("Choose", ["Login", "Register"])
+# if not st.session_state["logged_in"]:
+#     st.sidebar.subheader("Account")
+#     mode = st.sidebar.radio("Choose", ["Login", "Register"])
     
-    # Show logo on login screen too
-    # st.image("RSM International _ Logopedia _ Fandom.png", width=120)
+#     # Show logo on login screen too
+#     # st.image("RSM International _ Logopedia _ Fandom.png", width=120)
 
-    if mode == "Register":
-        register_user(users, creds)
-    else:
-        st.sidebar.subheader("Login")
-        user = st.sidebar.text_input("Username", key="login_user")
-        pwd = st.sidebar.text_input("Password", type="password", key="login_pw")
-        if st.sidebar.button("Login", key="login_btn"):
-            if authenticate(user, pwd, users):
-                st.session_state["logged_in"] = True
-                st.session_state["username"] = "demo" # or st.session_state["username"] = user
-                st.session_state["credit"] = 9999 # or st.session_state["credit"] = users[user].get("credit", 0.0)
-                st.rerun()
-            else:
-                st.sidebar.error("Invalid credentials.")
+#     if mode == "Register":
+#         register_user(users, creds)
+#     else:
+#         st.sidebar.subheader("Login")
+#         user = st.sidebar.text_input("Username", key="login_user")
+#         pwd = st.sidebar.text_input("Password", type="password", key="login_pw")
+#         if st.sidebar.button("Login", key="login_btn"):
+#             if authenticate(user, pwd, users):
+#                 st.session_state["logged_in"] = True
+#                 st.session_state["username"] = "demo" # or st.session_state["username"] = user
+#                 st.session_state["credit"] = 9999 # or st.session_state["credit"] = users[user].get("credit", 0.0)
+#                 st.rerun()
+#             else:
+#                 st.sidebar.error("Invalid credentials.")
 
 
 #------------------ Main VAT Checker ------------------ #
