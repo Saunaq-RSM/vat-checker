@@ -251,9 +251,9 @@ def main_app():
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
 
-    if st.sidebar.button("Logout"):
-        st.session_state.update({"logged_in": False, "username": "", "credit": 0.0})
-        st.rerun()
+    # if st.sidebar.button("Logout"):
+    #     st.session_state.update({"logged_in": False, "username": "", "credit": 0.0})
+    #     st.rerun()
 
 
 # ------------------ Run App ------------------ #
