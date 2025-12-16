@@ -127,7 +127,7 @@ if not st.session_state["logged_in"]:
                 st.sidebar.error("Invalid credentials.")
 
 
------------------- Main VAT Checker ------------------ #
+#------------------ Main VAT Checker ------------------ #
 def main_app():
     # show_logo()
 
