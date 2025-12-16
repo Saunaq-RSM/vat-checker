@@ -196,9 +196,9 @@ def main_app():
     #         st.warning(f"Only {len(to_process)} of {len(vat_list)} processed due to credit.")
 
     if st.button("Check VAT numbers"):
-    if not vat_list:
-        st.warning("No VAT numbers provided.")
-        return
+        if not vat_list:
+            st.warning("No VAT numbers provided.")
+            return
 
     # No credit system: process everything
     to_process = vat_list
