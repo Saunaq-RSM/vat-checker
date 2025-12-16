@@ -134,8 +134,8 @@ def main_app():
     # user = st.session_state["username"]
     # sidebar = st.sidebar
     # sidebar.write(f"**User:** {users[user]['name']}")
-    credit_slot = sidebar.empty()
-    credit_slot.write(f"**Credit:** €{st.session_state['credit']:.2f}")
+    # credit_slot = sidebar.empty()
+    # credit_slot.write(f"**Credit:** €{st.session_state['credit']:.2f}")
 
     st.title("EU VAT Batch Checker (VIES)")
 
