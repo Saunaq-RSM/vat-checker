@@ -9,125 +9,125 @@ import io
 from datetime import datetime
 import pytz
 
-# # Configuration
-# CRED_FILE = "credentials.yaml"
-# COST_PER_CHECK = 0.05  # € per VAT check line
-# INITIAL_CREDIT = 10.0  # € initial credit for new users
-# cet = pytz.timezone('Europe/Paris')  # CET/CEST depending on daylight saving
+# Configuration
+CRED_FILE = "credentials.yaml"
+COST_PER_CHECK = 0.05  # € per VAT check line
+INITIAL_CREDIT = 10.0  # € initial credit for new users
+cet = pytz.timezone('Europe/Paris')  # CET/CEST depending on daylight saving
 
-# # Password hashing setup
-# pwd_ctx = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
+# Password hashing setup
+pwd_ctx = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
-# # ------------------ Helpers for Credentials ------------------ #
-# def load_credentials():
-#     try:
-#         with open(CRED_FILE, "r") as f:
-#             data = yaml.safe_load(f)
-#     except FileNotFoundError:
-#         data = None
+# ------------------ Helpers for Credentials ------------------ #
+def load_credentials():
+    try:
+        with open(CRED_FILE, "r") as f:
+            data = yaml.safe_load(f)
+    except FileNotFoundError:
+        data = None
 
-#     if not isinstance(data, dict) or "credentials" not in data:
-#         data = {"credentials": {"users": {}}}
+    if not isinstance(data, dict) or "credentials" not in data:
+        data = {"credentials": {"users": {}}}
 
-#     if not isinstance(data["credentials"].get("users"), dict):
-#         data["credentials"]["users"] = {}
+    if not isinstance(data["credentials"].get("users"), dict):
+        data["credentials"]["users"] = {}
 
-#     return data
-
-
-# def save_credentials(data):
-#     with open(CRED_FILE, "w") as f:
-#         yaml.safe_dump(data, f)
+    return data
 
 
-# # ------------------ Registration and Authentication ------------------ #
-# def register_user(users, creds):
-#     st.subheader("Create a new account")
-#     u = st.text_input("Username", key="reg_user")
-#     n = st.text_input("Full Name", key="reg_name")
-#     p = st.text_input("Password", type="password", key="reg_pw")
-#     c = st.text_input("Confirm Password", type="password", key="reg_pw2")
-
-#     if st.button("Register", key="reg_btn"):
-#         if not u or not p:
-#             st.error("Username and password required.")
-#             return False
-#         if p != c:
-#             st.error("Passwords do not match.")
-#             return False
-#         if u in users:
-#             st.error("Username already exists.")
-#             return False
-
-#         users[u] = {
-#             "name": n,
-#             "password": pwd_ctx.hash(p),
-#             "credit": INITIAL_CREDIT,
-#         }
-#         creds["credentials"]["users"] = users
-#         save_credentials(creds)
-#         st.success(f"Account created with €{INITIAL_CREDIT:.2f}. Please log in.")
-#         return True
-#     return False
-
-# def show_logo():
-#     st.markdown(
-#         """
-#         <style>
-#         [data-testid="stSidebar"] img {
-#             margin-bottom: 20px;
-#         }
-#         .logo-container {
-#             position: absolute;
-#             top: 15px;
-#             left: 15px;
-#         }
-#         </style>
-#         """,
-#         unsafe_allow_html=True,
-#     )
-#     st.image("RSM International _ Logopedia _ Fandom.png", width=120)  # Adjust size as needed
-
-# def authenticate(u, p, users):
-#     return u in users and pwd_ctx.verify(p, users[u]["password"])
+def save_credentials(data):
+    with open(CRED_FILE, "w") as f:
+        yaml.safe_dump(data, f)
 
 
-# # ------------------ Session State Initialization ------------------ #
-# if "logged_in" not in st.session_state:
-#     st.session_state.update({"logged_in": False, "username": "", "credit": 0.0})
+# ------------------ Registration and Authentication ------------------ #
+def register_user(users, creds):
+    st.subheader("Create a new account")
+    u = st.text_input("Username", key="reg_user")
+    n = st.text_input("Full Name", key="reg_name")
+    p = st.text_input("Password", type="password", key="reg_pw")
+    c = st.text_input("Confirm Password", type="password", key="reg_pw2")
 
-# # ------------------ App Configuration ------------------ #
-# st.set_page_config(page_title="EU VAT Batch Checker (VIES)", layout="centered")
-# show_logo()
+    if st.button("Register", key="reg_btn"):
+        if not u or not p:
+            st.error("Username and password required.")
+            return False
+        if p != c:
+            st.error("Passwords do not match.")
+            return False
+        if u in users:
+            st.error("Username already exists.")
+            return False
 
-# creds = load_credentials()
-# users = creds["credentials"]["users"]
+        users[u] = {
+            "name": n,
+            "password": pwd_ctx.hash(p),
+            "credit": INITIAL_CREDIT,
+        }
+        creds["credentials"]["users"] = users
+        save_credentials(creds)
+        st.success(f"Account created with €{INITIAL_CREDIT:.2f}. Please log in.")
+        return True
+    return False
 
-# # ------------------ Login / Register UI ------------------ #
-# if not st.session_state["logged_in"]:
-#     st.sidebar.subheader("Account")
-#     mode = st.sidebar.radio("Choose", ["Login", "Register"])
+def show_logo():
+    st.markdown(
+        """
+        <style>
+        [data-testid="stSidebar"] img {
+            margin-bottom: 20px;
+        }
+        .logo-container {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.image("RSM International _ Logopedia _ Fandom.png", width=120)  # Adjust size as needed
+
+def authenticate(u, p, users):
+    return u in users and pwd_ctx.verify(p, users[u]["password"])
+
+
+# ------------------ Session State Initialization ------------------ #
+if "logged_in" not in st.session_state:
+    st.session_state.update({"logged_in": False, "username": "", "credit": 0.0})
+
+# ------------------ App Configuration ------------------ #
+st.set_page_config(page_title="EU VAT Batch Checker (VIES)", layout="centered")
+show_logo()
+
+creds = load_credentials()
+users = creds["credentials"]["users"]
+
+# ------------------ Login / Register UI ------------------ #
+if not st.session_state["logged_in"]:
+    st.sidebar.subheader("Account")
+    mode = st.sidebar.radio("Choose", ["Login", "Register"])
     
-#     # Show logo on login screen too
-#     # st.image("RSM International _ Logopedia _ Fandom.png", width=120)
+    # Show logo on login screen too
+    # st.image("RSM International _ Logopedia _ Fandom.png", width=120)
 
-#     if mode == "Register":
-#         register_user(users, creds)
-#     else:
-#         st.sidebar.subheader("Login")
-#         user = st.sidebar.text_input("Username", key="login_user")
-#         pwd = st.sidebar.text_input("Password", type="password", key="login_pw")
-#         if st.sidebar.button("Login", key="login_btn"):
-#             if authenticate(user, pwd, users):
-#                 st.session_state["logged_in"] = True
-#                 st.session_state["username"] = user
-#                 st.session_state["credit"] = users[user].get("credit", 0.0)
-#                 st.rerun()
-#             else:
-#                 st.sidebar.error("Invalid credentials.")
+    if mode == "Register":
+        register_user(users, creds)
+    else:
+        st.sidebar.subheader("Login")
+        user = st.sidebar.text_input("Username", key="login_user")
+        pwd = st.sidebar.text_input("Password", type="password", key="login_pw")
+        if st.sidebar.button("Login", key="login_btn"):
+            if authenticate(user, pwd, users):
+                st.session_state["logged_in"] = True
+                st.session_state["username"] = user
+                st.session_state["credit"] = users[user].get("credit", 0.0)
+                st.rerun()
+            else:
+                st.sidebar.error("Invalid credentials.")
 
 
-# ------------------ Main VAT Checker ------------------ #
+------------------ Main VAT Checker ------------------ #
 def main_app():
     # show_logo()
 
