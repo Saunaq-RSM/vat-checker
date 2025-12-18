@@ -60,12 +60,12 @@ def parse_response(xml_text: str) -> dict:
 
 def check_vat(country: str, number: str) -> dict:
     """Send SOAP request, handle timeouts, and retry server errors."""
-    MAX_ITERATIONS = 4
+    MAX_ITERATIONS = 6
     for attempt in range(1, MAX_ITERATIONS + 1):
         try:
             soap = build_soap(country, number)
             # Fixed timeout = 10 seconds
-            resp = requests.post(VIES_ENDPOINT, headers=HEADERS, data=soap, timeout=60) #timeout=10
+            resp = requests.post(VIES_ENDPOINT, headers=HEADERS, data=soap, timeout=120) #timeout=10
             resp.raise_for_status()
             result = parse_response(resp.text)
 
