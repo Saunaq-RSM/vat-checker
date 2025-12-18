@@ -234,7 +234,7 @@ def main_app():
     
             progress_bar.progress(i / total)
             status_text.text(f"Processing {i} of {total} VAT checks...")
-            table_placeholder.dataframe(results_df, width=1200)
+            table_placeholder.dataframe(results_df, width=1500)
     
         status_text.text("Done!")
     
