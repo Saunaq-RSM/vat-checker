@@ -86,7 +86,7 @@ def show_logo():
         """,
         unsafe_allow_html=True,
     )
-    st.image("RSM International _ Logopedia _ Fandom.png", width=120)  # Adjust size as needed
+    # st.image("RSM International _ Logopedia _ Fandom.png", width=120)  # Adjust size as needed
 
 def authenticate(u, p, users):
     return u in users and pwd_ctx.verify(p, users[u]["password"])
