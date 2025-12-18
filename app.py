@@ -259,11 +259,6 @@ def main_app():
 # if st.session_state["logged_in"]:
 #     main_app()
 
-def main_app():
-    # remember VAT results across reruns
-    if "vat_results" not in st.session_state:
-        st.session_state["vat_results"] = None
-
 main_app()
 
 hide_st_style = """
